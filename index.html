@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Köstebek">
+<meta name="theme-color" content="#f6f6f3">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Köstebek Kim?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800&family=Rubik:wght@400;500;700&display=swap">
+<style>
+/* Layout: one card in the middle of a dark felt table; one screen per step */
+:root{
+  --bg:#f6f6f3; --felt:#ebedeb; --field:#ffffff; --card:#dcdfe3; --ink:#1f2329;
+  --fg:#1f2329; --muted:#626872; --gold:#f5b800; --gold-ink:#7d5900; --red:#d8453f; --red-soft:#f8e0de; --red-ink:#9b2620; --line:#d2d5d8;
+  --display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+.app{max-width:560px;margin:0 auto;padding-block:20px 32px;min-height:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,7vw,40px);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 span{color:var(--red)}
+h2{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0}
+.sub{color:var(--muted);margin:6px 0 0;line-height:1.5}
+section{display:flex;flex-direction:column;gap:10px}
+.names{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;gap:8px;align-items:center}
+.row .n{width:28px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:500}
+input[type=text]{flex:1;min-width:0;font:inherit;font-size:18px;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--field);color:var(--fg);outline:none;-webkit-user-select:text;user-select:text}
+input[type=text]:focus{border-color:var(--gold)}
+.x{width:44px;height:48px;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--muted);font-size:22px;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:16px;padding:10px 14px;border-radius:999px;border:2px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:700}
+.chip:disabled{opacity:.35}
+.btn{font-family:var(--display);font-weight:600;font-size:18px;padding:18px 20px;border-radius:16px;border:0;background:var(--gold);color:var(--ink);cursor:pointer;width:100%}
+.btn.ghost{background:transparent;color:var(--fg);border:2px solid var(--line)}
+.btn.red{background:var(--red);color:var(--field)}
+.btn:disabled{opacity:.35;cursor:default}
+.small{align-self:center;font:inherit;font-size:14px;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.small:not(:disabled){color:var(--fg);border-color:var(--muted)}
+.small:disabled{opacity:.4}
+button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+.err{color:var(--red);min-height:1.3em;margin:0}
+.stage{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.card{background:var(--card);color:var(--ink);border-radius:24px;padding:32px 24px;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;box-shadow:none;min-height:300px;justify-content:center;box-sizing:border-box}
+.card .who{font-family:var(--display);font-weight:800;font-size:clamp(30px,8vw,46px);word-break:break-word}
+.card .lbl{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.card .word{font-family:var(--display);font-weight:800;font-size:clamp(30px,9vw,52px);line-height:1.1;word-break:break-word}
+.card.imp{background:var(--red-soft);color:var(--red-ink)}
+.card.imp .lbl{color:var(--red-ink)}
+.cat{display:inline-block;padding:6px 12px;border-radius:999px;background:rgba(31,35,41,.08);font-weight:500;font-size:15px}
+.card.imp .cat{background:rgba(155,38,32,.1)}
+.hold{touch-action:none;cursor:pointer;min-height:360px}
+.hold.idle{background:var(--bg);color:var(--fg);border:3px dashed var(--muted);box-shadow:none}
+.hold.idle .lbl{color:var(--muted)}
+.finger{font-size:56px;line-height:1}
+.dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dot.done{background:var(--gold)}
+.dot.now{background:var(--fg)}
+.round{font-family:var(--display);font-weight:600;text-align:center;color:var(--muted);letter-spacing:.06em}
+.order{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:0;padding:0;list-style:none}
+.order li{padding:6px 10px;border-radius:999px;background:var(--felt);color:var(--muted);font-size:15px}
+.order li.now{background:var(--gold);color:var(--ink);font-weight:700}
+.votes{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.vote{font:inherit;font-size:17px;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--felt);color:var(--fg);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left}
+.vote b{font-family:var(--display);font-variant-numeric:tabular-nums;color:var(--gold-ink)}
+.vote.top{border-color:var(--gold);background:#fff6d6}
+.res li{display:flex;justify-content:space-between;padding:10px 14px;border-radius:12px;background:var(--felt)}
+.res{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.res li.bad{background:var(--red-soft);color:var(--red-ink);font-weight:700}
+.verdict{font-family:var(--display);font-weight:800;font-size:22px;text-align:center;margin:0;text-wrap:balance}
+.stack{display:flex;flex-direction:column;gap:10px}
+.rules{margin:0;padding-left:20px;color:var(--muted);line-height:1.55}
+@media (prefers-reduced-motion:no-preference){.card{animation:pop .2s ease-out}@keyframes pop{from{transform:scale(.96);opacity:.5}to{transform:none;opacity:1}}}
+</style>
+
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const DATA = {
+  "Ünlüler": [
+    ["Tarkan","şarkıcı"],["Sezen Aksu","şarkıcı"],["Barış Manço","müzisyen"],["Ajda Pekkan","şarkıcı"],["Zeki Müren","sanatçı"],
+    ["Müslüm Gürses","şarkıcı"],["Cem Yılmaz","komedyen"],["Kemal Sunal","oyuncu"],["Şener Şen","oyuncu"],["Haluk Bilginer","oyuncu"],
+    ["Arda Güler","futbolcu"],["Hakan Şükür","futbolcu"],["Naim Süleymanoğlu","sporcu"],["Orhan Pamuk","yazar"],["Nazım Hikmet","şair"],
+    ["Nasreddin Hoca","hikâye kahramanı"],["Fatih Sultan Mehmet","padişah"],["Messi","futbolcu"],["Michael Jackson","şarkıcı"],["Einstein","bilim insanı"],
+    ["Shakespeare","yazar"],["Leonardo da Vinci","ressam"],["Charlie Chaplin","oyuncu"],["Elon Musk","iş insanı"],["Mozart","besteci"],
+    ["Cristiano Ronaldo","futbolcu"],["Kenan İmirzalıoğlu","oyuncu"],["Kıvanç Tatlıtuğ","oyuncu"],["Beren Saat","oyuncu"],["Türkan Şoray","oyuncu"],
+    ["Hülya Avşar","sunucu"],["Acun Ilıcalı","sunucu"],["Okan Bayülgen","sunucu"],["Ata Demirer","komedyen"],["Yılmaz Erdoğan","yönetmen"],
+    ["Mustafa Sandal","şarkıcı"],["Sertab Erener","şarkıcı"],["İbrahim Tatlıses","şarkıcı"],["Ferdi Tayfur","şarkıcı"],["Bülent Ersoy","şarkıcı"],
+    ["Fazıl Say","piyanist"],["Aziz Sancar","bilim insanı"],["Mimar Sinan","mimar"],["Evliya Çelebi","gezgin"],["Yunus Emre","şair"],
+    ["Mevlana","düşünür"],["Kanuni Sultan Süleyman","padişah"],["Hidayet Türkoğlu","basketbolcu"],["Fatih Terim","teknik direktör"],["Burak Yılmaz","futbolcu"],
+    ["Rıza Kocaoğlu","oyuncu"],["Taylor Swift","şarkıcı"],["Beyoncé","şarkıcı"],["Freddie Mercury","şarkıcı"],["Elvis Presley","şarkıcı"],
+    ["Picasso","ressam"],["Van Gogh","ressam"],["Newton","bilim insanı"],["Napolyon","komutan"],["Kleopatra","kraliçe"],
+    ["Steve Jobs","iş insanı"],["Bill Gates","iş insanı"],["Michael Jordan","sporcu"],["Usain Bolt","sporcu"],["Muhammed Ali","sporcu"],
+    ["Brad Pitt","oyuncu"],["Tom Cruise","oyuncu"],["Mr. Bean","komedyen"],["Harry Potter","kitap kahramanı"],["Sherlock Holmes","dedektif"],
+    ["Keloğlan","masal kahramanı"],["Karagöz","gölge oyunu"],["Temel","fıkra"],["Noel Baba","kış"],["Pinokyo","masal kahramanı"]
+  ],
+  "Meslekler": [
+    ["Doktor","hastane"],["Öğretmen","okul"],["Aşçı","mutfak"],["Pilot","gökyüzü"],["Polis","güvenlik"],["İtfaiyeci","acil durum"],
+    ["Berber","saç"],["Dişçi","ağız"],["Avukat","mahkeme"],["Fırıncı","sabah"],["Çiftçi","toprak"],["Garson","restoran"],
+    ["Astronot","bilim"],["Kasap","dükkân"],["Taksici","araba"],["Postacı","kapı"],["Fotoğrafçı","görüntü"],["Balıkçı","su"],
+    ["Hemşire","sağlık"],["Mimar","bina"],["Terzi","kıyafet"],["Simitçi","sokak"],["Hakem","maç"],["Sihirbaz","gösteri"],
+    ["Palyaço","eğlence"],["Veteriner","hayvan"],["Eczacı","ilaç"],["Elektrikçi","tamir"],["Tesisatçı","tamir"],["Marangoz","ahşap"],
+    ["Bahçıvan","bitki"],["Kaptan","gemi"],["Hostes","uçak"],["Asker","üniforma"],["Dedektif","gizem"],["Gazeteci","haber"],
+    ["Hâkim","mahkeme"],["Kuaför","saç"],["Ressam","renk"],["Heykeltıraş","sanat"],["Kütüphaneci","kitap"],["Bankacı","para"],
+    ["Kasiyer","market"],["Kurye","teslimat"],["Güvenlik görevlisi","kapı"],["Çoban","koyun"],["Arıcı","bal"],["Dalgıç","deniz"],
+    ["Cankurtaran","plaj"],["Bilgisayar programcısı","ekran"],["YouTuber","video"],["Müzisyen","sahne"],["DJ","parti"],["Oyuncu","sahne"],
+    ["Yönetmen","film"],["Spiker","televizyon"],["Bulaşıkçı","mutfak"],["Çaycı","iş yeri"],["Kapıcı","apartman"],["Lokantacı","yemek"],
+    ["Rehber","turist"],["Madenci","yer altı"],["Tır şoförü","yol"],["Makinist","tren"],["Saatçi","dükkân"],["Kuyumcu","altın"]
+  ],
+  "Mekanlar": [
+    ["Hastane","bina"],["Havalimanı","yolculuk"],["Plaj","yaz"],["Sinema","eğlence"],["Kütüphane","sessizlik"],["Hamam","su"],
+    ["Pazar","alışveriş"],["Okul","çocuklar"],["Lunapark","eğlence"],["Cami","bina"],["Stadyum","kalabalık"],["Kapalıçarşı","alışveriş"],
+    ["Düğün salonu","kutlama"],["Berber dükkânı","dükkân"],["Hayvanat bahçesi","gezi"],["Metro","yolculuk"],["Kamp alanı","doğa"],["Uzay istasyonu","bilim"],
+    ["Galata Kulesi","İstanbul"],["Kapadokya","gezi"],["Eczane","dükkân"],["Müze","gezi"],["Akvaryum","gezi"],["Otel","tatil"],
+    ["Kayak merkezi","kış"],["Su parkı","yaz"],["Hapishane","bina"],["Mezarlık","sessizlik"],["İtfaiye","bina"],["Karakol","bina"],
+    ["Postane","bina"],["Banka","para"],["Benzinlik","yol"],["Otogar","yolculuk"],["Tren garı","yolculuk"],["Liman","deniz"],
+    ["Vapur","deniz"],["Ada","deniz"],["Mağara","doğa"],["Şelale","doğa"],["Çöl","sıcak"],["Orman","doğa"],
+    ["Köy","kırsal"],["Çiftlik","kırsal"],["Kafe","buluşma"],["Çay bahçesi","buluşma"],["Kahvehane","buluşma"],["Pastane","tatlı"],
+    ["Fırın","sabah"],["Market","alışveriş"],["AVM","alışveriş"],["Spor salonu","egzersiz"],["Yüzme havuzu","su"],["Konser","müzik"],
+    ["Tiyatro","sahne"],["Sirk","gösteri"],["Gece kulübü","gece"],["Asansör","bina"],["Çatı","yükseklik"],["Bodrum katı","ev"],
+    ["Mutfak","ev"],["Banyo","ev"],["Balkon","ev"],["Bahçe","ev"],["Saray","tarih"],["Kale","tarih"],
+    ["Ayasofya","İstanbul"],["Pamukkale","gezi"],["Efes","tarih"],["Eyfel Kulesi","Avrupa"],["Piramitler","tarih"],["Ay","uzay"]
+  ],
+  "Eşyalar": [
+    ["Sandalye","ev"],["Buzdolabı","ev"],["Diş fırçası","banyo"],["Şemsiye","hava"],["Çaydanlık","mutfak"],["Gözlük","yüz"],
+    ["Makas","kesmek"],["Saat","zaman"],["Yastık","yatak"],["Anahtar","kapı"],["Kumanda","televizyon"],["Bavul","yolculuk"],
+    ["Ayna","banyo"],["Cezve","mutfak"],["Tesbih","el"],["Nazar boncuğu","şans"],["Kalem","okul"],["Mum","ışık"],
+    ["Ütü","kıyafet"],["Halı","ev"],["Süpürge","temizlik"],["Çamaşır makinesi","ev"],["Bulaşık makinesi","mutfak"],["Tava","mutfak"],
+    ["Tencere","mutfak"],["Çatal","sofra"],["Kaşık","sofra"],["Bıçak","mutfak"],["Tabak","sofra"],["Bardak","sofra"],
+    ["Çay bardağı","mutfak"],["Termos","sıcak"],["Fön makinesi","saç"],["Tarak","saç"],["Havlu","banyo"],["Sabun","banyo"],
+    ["Diş macunu","banyo"],["Parfüm","koku"],["Cüzdan","cep"],["Telefon","iletişim"],["Kulaklık","müzik"],["Şarj aleti","elektrik"],
+    ["Laptop","iş"],["Klavye","bilgisayar"],["Bilgisayar faresi","masa"],["Televizyon","salon"],["Kamera","görüntü"],["Ampul","ışık"],
+    ["El feneri","karanlık"],["Pil","enerji"],["Çekiç","alet"],["Tornavida","alet"],["Merdiven","yükseklik"],["Battaniye","kış"],
+    ["Yorgan","yatak"],["Perde","pencere"],["Vazo","süs"],["Saksı","bitki"],["Çöp kovası","ev"],["Paspas","temizlik"],
+    ["Defter","okul"],["Silgi","okul"],["Cetvel","okul"],["Sırt çantası","okul"],["Top","oyun"],["Uçurtma","rüzgâr"],
+    ["Satranç","oyun"],["Tavla","oyun"],["Okey taşı","oyun"],["Zar","oyun"],["Gitar","müzik"],["Bisiklet","spor"],
+    ["Kaykay","sokak"],["Kask","güvenlik"],["Pasaport","yolculuk"],["Harita","yön"],["Pusula","yön"],["Dürbün","uzak"],
+    ["Mikrofon","ses"],["Hoparlör","ses"],["Kumbara","para"],["Hediye paketi","kutlama"],["Balon","parti"],["Doğum günü pastası","kutlama"]
+  ],
+  "Hayvanlar": [
+    ["Kedi","ev"],["Köpek","ev"],["Fil","büyük"],["Zürafa","Afrika"],["Penguen","soğuk"],["Aslan","Afrika"],["Yunus","deniz"],
+    ["Tavuk","çiftlik"],["İnek","çiftlik"],["Kartal","gökyüzü"],["Kaplumbağa","yavaş"],["Arı","çiçek"],["Timsah","su"],
+    ["Maymun","orman"],["Baykuş","gece"],["Deve","çöl"],["Ahtapot","deniz"],["Tavşan","orman"],["At","çiftlik"],
+    ["Eşek","çiftlik"],["Koyun","çiftlik"],["Keçi","çiftlik"],["Ördek","su"],["Kaz","çiftlik"],["Hindi","çiftlik"],
+    ["Horoz","sabah"],["Güvercin","şehir"],["Martı","deniz"],["Papağan","renkli"],["Leylek","göç"],["Flamingo","pembe"],
+    ["Köpekbalığı","deniz"],["Balina","deniz"],["Denizanası","deniz"],["Yengeç","deniz"],["Kurbağa","su"],["Yılan","sürüngen"],
+    ["Kertenkele","sürüngen"],["Kaplan","orman"],["Leopar","hızlı"],["Ayı","orman"],["Kurt","orman"],["Tilki","orman"],
+    ["Sincap","ağaç"],["Kirpi","diken"],["Yarasa","gece"],["Fare","küçük"],["Hamster","kafes"],["Kelebek","çiçek"],
+    ["Karınca","küçük"],["Örümcek","ağ"],["Sivrisinek","yaz"],["Salyangoz","yavaş"],["Solucan","toprak"],["Kanguru","Avustralya"],
+    ["Koala","Avustralya"],["Panda","Asya"],["Gergedan","Afrika"],["Su aygırı","Afrika"],["Zebra","Afrika"],["Goril","orman"],
+    ["Geyik","orman"],["Kunduz","nehir"],["Fok","soğuk"],["Kutup ayısı","soğuk"],["Tavus kuşu","renkli"],["Dinozor","tarih"]
+  ],
+  "Yiyecekler": [
+    ["Lahmacun","fırın"],["Baklava","tatlı"],["Mantı","hamur"],["Döner","sokak"],["Simit","kahvaltı"],["Menemen","kahvaltı"],
+    ["Pizza","İtalya"],["Sushi","Japonya"],["Künefe","tatlı"],["İskender","et"],["Kokoreç","sokak"],["Dondurma","yaz"],
+    ["Karpuz","yaz"],["Çay","içecek"],["Türk kahvesi","içecek"],["Ayran","içecek"],["Hamburger","fast food"],["Sarma","yemek"],
+    ["Pide","fırın"],["Lokum","tatlı"],["Börek","fırın"],["Gözleme","hamur"],["Kumpir","patates"],["Midye dolma","sokak"],
+    ["Balık ekmek","sokak"],["Çiğ köfte","acı"],["Adana kebap","et"],["Köfte","et"],["Mercimek çorbası","sıcak"],["İşkembe çorbası","sıcak"],
+    ["Karnıyarık","yemek"],["İmam bayıldı","yemek"],["Kuru fasulye","yemek"],["Pilav","yemek"],["Makarna","İtalya"],["Hünkâr beğendi","yemek"],
+    ["Mantar","sebze"],["Patlıcan","sebze"],["Domates","sebze"],["Salatalık","sebze"],["Havuç","sebze"],["Soğan","sebze"],
+    ["Sarımsak","koku"],["Biber","sebze"],["Patates","sebze"],["Elma","meyve"],["Muz","meyve"],["Çilek","meyve"],
+    ["Kiraz","meyve"],["Portakal","meyve"],["Limon","ekşi"],["Üzüm","meyve"],["İncir","meyve"],["Nar","meyve"],
+    ["Ananas","tropik"],["Avokado","yeşil"],["Fındık","kuruyemiş"],["Fıstık","kuruyemiş"],["Çekirdek","kuruyemiş"],["Kestane","kış"],
+    ["Haşlanmış mısır","yaz"],["Pamuk şeker","lunapark"],["Çikolata","tatlı"],["Sütlaç","tatlı"],["Aşure","tatlı"],["Helva","tatlı"],
+    ["Tulumba","tatlı"],["Lokma","tatlı"],["Kek","fırın"],["Kurabiye","fırın"],["Patlamış mısır","sinema"],["Cips","atıştırmalık"],
+    ["Bal","kahvaltı"],["Peynir","kahvaltı"],["Zeytin","kahvaltı"],["Yumurta","kahvaltı"],["Sucuk","kahvaltı"],["Reçel","kahvaltı"],
+    ["Salep","kış"],["Boza","kış"],["Limonata","yaz"],["Kola","içecek"],["Süt","içecek"],["Şalgam","içecek"]
+  ],
+  "Spor ve Oyunlar": [
+    ["Futbol","takım"],["Basketbol","top"],["Voleybol","top"],["Tenis","raket"],["Masa tenisi","raket"],["Yüzme","su"],
+    ["Boks","eldiven"],["Güreş","ring"],["Yağlı güreş","gelenek"],["Okçuluk","hedef"],["Bowling","top"],["Golf","çim"],
+    ["Kayak","kar"],["Sörf","dalga"],["Dalış","deniz"],["Bisiklet yarışı","pedal"],["Maraton","koşu"],["Jimnastik","esneklik"],
+    ["Satranç turnuvası","strateji"],["Formula 1","hız"],["Halter","ağırlık"],["Yoga","esneme"],["Paraşüt","gökyüzü"],["Dağcılık","zirve"],
+    ["Saklambaç","çocuk"],["Yakar top","çocuk"],["İp atlama","çocuk"],["Körebe","çocuk"],["Bilardo","masa"],["Dart","hedef"],
+    ["Langırt","masa"],["Olimpiyatlar","madalya"],["Penaltı","gol"],["Kırmızı kart","hakem"],["Derbi","rekabet"],["Dünya Kupası","turnuva"]
+  ],
+  "Ülkeler ve Şehirler": [
+    ["İstanbul","şehir"],["Ankara","şehir"],["İzmir","şehir"],["Antalya","tatil"],["Trabzon","Karadeniz"],["Gaziantep","yemek"],
+    ["Bodrum","tatil"],["Eskişehir","şehir"],["Konya","şehir"],["Rize","çay"],["Van","göl"],["Bursa","şehir"],
+    ["Londra","Avrupa"],["Paris","Avrupa"],["Roma","tarih"],["Venedik","su"],["Amsterdam","bisiklet"],["Berlin","Avrupa"],
+    ["New York","Amerika"],["Las Vegas","eğlence"],["Tokyo","Asya"],["Dubai","çöl"],["Mısır","tarih"],["Japonya","Asya"],
+    ["Çin","Asya"],["Hindistan","Asya"],["Brezilya","futbol"],["Meksika","Amerika"],["İtalya","Avrupa"],["İspanya","Avrupa"],
+    ["Yunanistan","komşu"],["Rusya","soğuk"],["Kanada","soğuk"],["Avustralya","uzak"],["İsviçre","dağ"],["Kuzey Kutbu","buz"],
+    ["Hawaii","ada"],["Maldivler","ada"],["Sahra Çölü","kum"],["Everest","dağ"],["Amazon Ormanı","yeşil"],["Karadeniz","deniz"]
+  ],
+  "Taşıtlar": [
+    ["Uçak","gökyüzü"],["Helikopter","gökyüzü"],["Gemi","deniz"],["Denizaltı","deniz"],["Kayık","su"],["Yat","lüks"],
+    ["Tren","ray"],["Tramvay","ray"],["Otobüs","şehir"],["Dolmuş","şehir"],["Taksi","şehir"],["Ambulans","acil durum"],
+    ["İtfaiye aracı","acil durum"],["Polis arabası","acil durum"],["Traktör","tarla"],["Kamyon","yük"],["Motosiklet","iki teker"],["Scooter","iki teker"],
+    ["Karavan","tatil"],["Limuzin","lüks"],["Yarış arabası","hız"],["Teleferik","yükseklik"],["Sıcak hava balonu","gökyüzü"],["Roket","uzay"],
+    ["Fayton","at"],["Kızak","kar"],["Paten","tekerlek"],["Jet ski","deniz"]
+  ],
+  "Kıyafet ve Aksesuar": [
+    ["Kazak","kış"],["Mont","kış"],["Atkı","kış"],["Eldiven","kış"],["Bere","kış"],["Mayo","yaz"],
+    ["Şort","yaz"],["Terlik","ev"],["Pijama","gece"],["Takım elbise","resmi"],["Kravat","resmi"],["Gelinlik","düğün"],
+    ["Kot pantolon","günlük"],["Tişört","günlük"],["Spor ayakkabı","ayak"],["Topuklu ayakkabı","ayak"],["Çizme","ayak"],["Çorap","ayak"],
+    ["Şapka","baş"],["Güneş gözlüğü","yaz"],["Kol saati","bilek"],["Yüzük","parmak"],["Kolye","boyun"],["Küpe","kulak"],
+    ["Kemer","bel"],["Çanta","omuz"],["Önlük","mutfak"],["Yağmurluk","hava"]
+  ],
+  "Doğa ve Hava": [
+    ["Gökkuşağı","renk"],["Şimşek","gökyüzü"],["Kar","kış"],["Dolu","gökyüzü"],["Sis","hava"],["Fırtına","rüzgâr"],
+    ["Deprem","yer"],["Volkan","sıcak"],["Tsunami","deniz"],["Güneş tutulması","gökyüzü"],["Dolunay","gece"],["Yıldız","gece"],
+    ["Kuyruklu yıldız","uzay"],["Gün batımı","akşam"],["Gün doğumu","sabah"],["Buzdağı","soğuk"],["Kum fırtınası","çöl"],["Kardan adam","kış"],
+    ["Ağaç","doğa"],["Gül","çiçek"],["Lale","çiçek"],["Kaktüs","çöl"],["Ayçiçeği","sarı"],["Papatya","çiçek"],
+    ["Nehir","su"],["Göl","su"],["Okyanus","su"],["Dağ","yükseklik"]
+  ],
+  "Etkinlik ve Gelenekler": [
+    ["Düğün","kutlama"],["Kına gecesi","kutlama"],["Nişan","kutlama"],["Sünnet düğünü","kutlama"],["Doğum günü","kutlama"],["Mezuniyet","okul"],
+    ["Bayram","tatil"],["Şeker bayramı","tatil"],["Yılbaşı","kış"],["Hıdırellez","bahar"],["Piknik","doğa"],["Mangal","yemek"],
+    ["Kamp ateşi","gece"],["Asker uğurlaması","veda"],["Kız isteme","aile"],["Bebek görmeye gitmek","ziyaret"],["Taşınma","ev"],["Bahar temizliği","ev"],
+    ["İlk iş günü","heyecan"],["Sınav","okul"],["Karne günü","okul"],["Tatil","dinlenme"],["Uçak yolculuğu","yolculuk"],["Kayıp bavul","havalimanı"],
+    ["Trafik sıkışıklığı","yol"],["Elektrik kesintisi","ev"],["Yolda kalmak","araba"],["Kahve falı","fincan"]
+  ]
+};
+const CATS = Object.keys(DATA);
+const ROUNDS = 3;
+
+let S = {
+  names: load("imp_names", ["", "", ""]),
+  impCount: load("imp_count", 1),
+  hint: load("imp_hint", true),
+  screen: "setup",
+};
+function load(k,d){try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const players = () => S.names.map(n=>n.trim()).filter(Boolean);
+const maxImp = n => Math.max(1, Math.floor((n-1)/2));
+
+function render(){
+  ({setup:renderSetup, pass:renderPass, reveal:renderReveal, talk:renderTalk, vote:renderVote, end:renderEnd})[S.screen]();
+  window.scrollTo(0,0);
+}
+
+function renderSetup(){
+  const n = players().length;
+  app.innerHTML = `
+    <header><h1>Köstebek <span>Kim?</span></h1>
+    <p class="sub">Herkes aynı gizli kelimeyi görür, köstebek sadece küçük bir ipucu. Sırayla kelimeye benzeyen bir şey söyleyin, köstebeği bulun.</p>
+    <a class="small" href="online.html" style="display:inline-block;margin-top:12px;text-decoration:none">Uzaktan oyna: herkes kendi telefonundan →</a></header>
+    <section><h2 id="cnt">Oyuncular (${n}/10)</h2>
+      <p class="sub" style="margin:0">Masada oturduğunuz sırayla, saat yönünde yazın.</p>
+      <div class="names">${S.names.map((v,i)=>`
+        <div class="row"><span class="n">${i+1}</span>
+        <input type="text" id="nm${i}" data-i="${i}" value="${esc(v)}" placeholder="İsim yaz" maxlength="18" autocomplete="off" enterkeyhint="next">
+        ${S.names.length>3?`<button class="x" data-del="${i}" aria-label="Sil">×</button>`:""}</div>`).join("")}
+      </div>
+      ${S.names.length<10?`<button class="btn ghost" id="add">+ Oyuncu ekle</button>`:""}
+    </section>
+    <section><h2>Köstebek sayısı</h2>
+      <div class="chips">${[1,2,3].map(k=>`<button class="chip" data-imp="${k}" aria-pressed="${S.impCount===k}" ${k>1&&k>maxImp(n)?"disabled":""}>${k}</button>`).join("")}</div>
+    </section>
+    <section><h2>Köstebeğe ipucu</h2>
+      <div class="chips"><button class="chip" data-hint="1" aria-pressed="${S.hint}">İpucu ver</button><button class="chip" data-hint="0" aria-pressed="${!S.hint}">İpucu yok</button></div>
+    </section>
+    <p class="sub" id="left" style="margin:0"></p>
+    <section><h2>Kurallar</h2>
+      <ol class="rules">
+        <li>Telefon sırayla dolaşır, herkes kartı basılı tutarak kelimesini görür.</li>
+        <li>${ROUNDS} tur boyunca saat yönünde herkes kelimeyle ilgili tek bir kelime söyler.</li>
+        <li>Her oyunda bir sonraki kişi başlar.</li>
+        <li>Turlar bitince oylama yapılır. En çok oyu alan köstebekse siz kazanırsınız.</li>
+      </ol>
+    </section>
+    <p class="err" id="err"></p>
+    <button class="btn" id="start">Oyunu başlat</button>`;
+
+  app.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input",e=>{S.names[+e.target.dataset.i]=e.target.value;save("imp_names",S.names);
+      document.getElementById("cnt").textContent=`Oyuncular (${players().length}/10)`});
+    inp.addEventListener("keydown",e=>{if(e.key!=="Enter")return;const i=+e.target.dataset.i;
+      if(i===S.names.length-1&&S.names.length<10){S.names.push("");render()}
+      document.getElementById("nm"+(i+1))?.focus()});
+    inp.addEventListener("blur",()=>renderChipsOnly());
+  });
+  app.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{S.names.splice(+b.dataset.del,1);save("imp_names",S.names);render()});
+  const add=document.getElementById("add"); if(add) add.onclick=()=>{S.names.push("");render();document.getElementById("nm"+(S.names.length-1)).focus()};
+  app.querySelectorAll("[data-imp]").forEach(b=>b.onclick=()=>{S.impCount=+b.dataset.imp;save("imp_count",S.impCount);render()});
+  app.querySelectorAll("[data-hint]").forEach(b=>b.onclick=()=>{S.hint=b.dataset.hint==="1";save("imp_hint",S.hint);render()});
+  document.getElementById("start").onclick=startGame;
+  const total=CATS.reduce((a,c)=>a+DATA[c].length,0), used=load("imp_seen",[]).length;
+  document.getElementById("left").textContent=`Kelime havuzu: ${total} kelime · ${Math.max(0,total-used)} tanesi henüz çıkmadı`;
+}
+function renderChipsOnly(){
+  const n=players().length;
+  app.querySelectorAll("[data-imp]").forEach(b=>{const k=+b.dataset.imp;b.disabled=k>1&&k>maxImp(n)});
+}
+
+function startGame(){
+  const p=players(), err=document.getElementById("err")||{};
+  if(p.length<3){err.textContent="En az 3 oyuncu gerekli.";return}
+  if(new Set(p.map(x=>x.toLocaleLowerCase("tr"))).size!==p.length){err.textContent="İki oyuncu aynı isimde. İsimleri farklı yazın.";return}
+  const imps=Math.min(S.impCount,maxImp(p.length));
+  // no word repeats until every word in the list has been played
+  const ALL=CATS.flatMap(c=>DATA[c].map(([w,h])=>({c,w,h})));
+  let seen=load("imp_seen",[]);
+  let pool=ALL.filter(x=>!seen.includes(x.w));
+  if(!pool.length){seen=[];pool=ALL}
+  const {c:cat,w:word,h:hint}=pick(pool);
+  save("imp_seen",[...seen,word]);
+  const idx=[...p.keys()].sort(()=>Math.random()-.5).slice(0,imps);
+  // starter rotates one seat clockwise every game
+  const game=load("imp_game",-1)+1; save("imp_game",game);
+  const starter=game%p.length;
+  S.game={players:p,cat,word,hint,imps:idx,turn:0,starter,step:0,votes:p.map(()=>0)};
+  S.screen="pass"; render();
+}
+
+function dots(){const g=S.game;return `<div class="dots">${g.players.map((_,i)=>`<span class="dot ${i<g.turn?"done":i===g.turn?"now":""}"></span>`).join("")}</div>`}
+
+function renderPass(){
+  const g=S.game, name=g.players[g.turn];
+  app.innerHTML=`<div class="stage">
+    ${dots()}
+    <div class="card"><span class="lbl">Telefonu ver</span><div class="who">${esc(name)}</div><span class="cat">Başkası bakmasın</span></div>
+    <button class="btn" id="go">Ben ${esc(name)}</button>
+    <button class="small" id="quit">Oyunu bitir</button></div>`;
+  document.getElementById("go").onclick=()=>{S.screen="reveal";render()};
+  document.getElementById("quit").onclick=()=>{S.screen="setup";render()};
+}
+
+function renderReveal(){
+  const g=S.game, me=g.players[g.turn], isImp=g.imps.includes(g.turn), last=g.turn===g.players.length-1;
+  const secret = isImp
+    ? `<span class="lbl">${esc(me)}, sen</span><div class="word">KÖSTEBEK</div>
+       ${S.hint?`<span class="lbl">İpucun</span><div class="word" style="font-size:clamp(26px,7vw,38px)">${esc(g.hint)}</div>`:`<span class="cat">İpucu yok, şansına</span>`}`
+    : `<span class="lbl">${esc(me)}, gizli kelime</span><div class="word">${esc(g.word)}</div><span class="cat">${esc(g.cat)}</span>`;
+  const idle = `<div class="finger" aria-hidden="true">☝️</div><div class="who" style="font-size:clamp(24px,6vw,34px)">${esc(me)}</div><span class="lbl">Görmek için basılı tut</span>`;
+  app.innerHTML=`<div class="stage">
+    ${dots()}
+    <div class="card hold idle" id="hold" role="button" aria-label="Kelimeyi görmek için basılı tut">${idle}</div>
+    <p class="sub" style="text-align:center;margin:0" id="tip">Parmağını kaldırınca kart kapanır.</p>
+    <button class="small" id="nx" disabled>${last?"Herkes gördü, başla →":"Sıradaki: "+esc(g.players[g.turn+1])+" →"}</button></div>`;
+  const hold=document.getElementById("hold"), nx=document.getElementById("nx");
+  let shown=false;
+  const show=e=>{e.preventDefault();if(shown)return;shown=true;hold.className="card hold";hold.innerHTML=secret;nx.disabled=false;
+    try{hold.setPointerCapture(e.pointerId)}catch(_){}};
+  const hide=()=>{if(!shown)return;shown=false;hold.className="card hold idle";hold.innerHTML=idle};
+  hold.addEventListener("pointerdown",show);
+  ["pointerup","pointercancel","lostpointercapture"].forEach(ev=>hold.addEventListener(ev,hide));
+  hold.addEventListener("contextmenu",e=>e.preventDefault());
+  nx.onclick=()=>{g.turn++;S.screen=last?"talk":"pass";render()};
+}
+
+function renderTalk(){
+  const g=S.game, n=g.players.length;
+  const round=Math.floor(g.step/n)+1, seat=(g.starter+g.step)%n;
+  const isLast=g.step===n*ROUNDS-1;
+  app.innerHTML=`<div class="stage">
+    <div class="round">TUR ${round} / ${ROUNDS}</div>
+    <div class="card"><span class="lbl">${g.step===0?"İlk söyleyen":"Şimdi sıra"}</span><div class="who">${esc(g.players[seat])}</div>
+      <span class="cat">Kelimeyle ilgili tek bir kelime söyle</span></div>
+    <ul class="order">${[...Array(n)].map((_,k)=>{const s=(g.starter+k)%n;return `<li class="${s===seat?"now":""}">${esc(g.players[s])}</li>`}).join("")}</ul>
+    <div class="stack">
+      <button class="btn" id="nx">${isLast?"Turlar bitti, oylamaya geç":"Söyledi, sıradaki"}</button>
+      <button class="small" id="skip">Hemen oylamaya geç</button>
+    </div></div>`;
+  document.getElementById("nx").onclick=()=>{if(isLast){S.screen="vote"}else g.step++;render()};
+  document.getElementById("skip").onclick=()=>{S.screen="vote";render()};
+}
+
+function renderVote(){
+  const g=S.game, top=Math.max(...g.votes), total=g.votes.reduce((a,b)=>a+b,0);
+  app.innerHTML=`<div class="stage">
+    <header><h1>Oylama</h1><p class="sub">Herkes köstebek sandığı kişiyi söylesin. Her oy için o ismin üstüne bir kez dokunun.</p></header>
+    <div class="votes">${g.players.map((p,i)=>`<button class="vote ${top>0&&g.votes[i]===top?"top":""}" data-v="${i}"><span>${esc(p)}</span><b>${g.votes[i]}</b></button>`).join("")}</div>
+    <div class="stack">
+      <button class="btn red" id="show" ${total?"":"disabled"}>Köstebeği göster</button>
+      <button class="small" id="reset" ${total?"":"disabled"}>Oyları sıfırla</button>
+    </div></div>`;
+  app.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{g.votes[+b.dataset.v]++;render()});
+  document.getElementById("reset").onclick=()=>{g.votes=g.votes.map(()=>0);render()};
+  document.getElementById("show").onclick=()=>{S.screen="end";render()};
+}
+
+function renderEnd(){
+  const g=S.game, names=g.imps.map(i=>g.players[i]);
+  const top=Math.max(...g.votes), leaders=g.votes.map((v,i)=>v===top&&top>0?i:-1).filter(i=>i>=0);
+  const caught=leaders.length===1&&g.imps.includes(leaders[0]);
+  const verdict = top===0?"" : caught
+    ? `<p class="verdict">Köstebek yakalandı! Son şans: kelimeyi doğru tahmin ederse yine kazanır.</p>`
+    : leaders.length>1 ? `<p class="verdict">Oylar eşit, köstebek kaçtı!</p>` : `<p class="verdict">Yanlış kişi! Köstebek kazandı.</p>`;
+  app.innerHTML=`<div class="stage">
+    <div class="card imp"><span class="lbl">${names.length>1?"Köstebekler":"Köstebek"}</span><div class="word">${names.map(esc).join(" & ")}</div>
+      <span class="lbl">Gizli kelime</span><div class="word" style="font-size:clamp(24px,7vw,36px)">${esc(g.word)}</div>
+      ${S.hint?`<span class="cat">İpucu: ${esc(g.hint)}</span>`:""}</div>
+    ${verdict}
+    ${top>0?`<ul class="res">${g.players.map((p,i)=>({p,i,v:g.votes[i]})).sort((a,b)=>b.v-a.v).map(o=>`<li class="${g.imps.includes(o.i)?"bad":""}"><span>${esc(o.p)}</span><span>${o.v} oy</span></li>`).join("")}</ul>`:""}
+    <div class="stack"><button class="btn" id="again">Yeni oyun</button>
+    <button class="small" id="set">Oyuncuları değiştir</button></div></div>`;
+  document.getElementById("again").onclick=startGame;
+  document.getElementById("set").onclick=()=>{S.screen="setup";render()};
+}
+
+render();
+</script>
+
+</body>
+</html>
