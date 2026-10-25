@@ -252,7 +252,8 @@ function renderSetup(){
   const n = players().length;
   app.innerHTML = `
     <header><h1>Köstebek <span>Kim?</span></h1>
-    <p class="sub">Herkes aynı gizli kelimeyi görür, köstebek sadece küçük bir ipucu. Sırayla kelimeye benzeyen bir şey söyleyin, köstebeği bulun.</p></header>
+    <p class="sub">Herkes aynı gizli kelimeyi görür, köstebek sadece küçük bir ipucu. Sırayla kelimeye benzeyen bir şey söyleyin, köstebeği bulun.</p>
+    <a class="small" href="online.html" style="display:inline-block;margin-top:12px;text-decoration:none">Uzaktan oyna: herkes kendi telefonundan →</a></header>
     <section><h2 id="cnt">Oyuncular (${n}/10)</h2>
       <p class="sub" style="margin:0">Masada oturduğunuz sırayla, saat yönünde yazın.</p>
       <div class="names">${S.names.map((v,i)=>`
